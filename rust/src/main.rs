@@ -53,14 +53,15 @@ fn one_p2_recurse(input: i64) -> i64 {
 }
 
 fn two() {
-    let mut file = File::open("blobs/two.txt").expect("Unable to open the file");
+    let mut file = File::open("blobs/five.txt").expect("Unable to open the file");
     let mut txt = String::new();
+    let input = 1;
 
     file.read_to_string(&mut txt).expect("Unable to read file");
 
-    let mut command_arr: Vec<u32> = txt
+    let mut command_arr: Vec<i64> = txt
         .split(",")
-        .map(|el| el.parse::<u32>().unwrap())
+        .map(|el| el.parse::<i64>().unwrap())
         .collect();
 
     let mut i = 0;
@@ -68,25 +69,50 @@ fn two() {
         println!("{} {}", i, command_arr[i]);
 
         let mut dest_idx: usize = 0;
-
+        let op_string = command_arr[i].to_string();
+        let instruction_arr: Vec<&str> = op_string.split("").collect();
+        let op = format!(
+            "{}{}",
+            if instruction_arr.len() > 3 {
+                instruction_arr[instruction_arr.len() - 3]
+            } else {
+                "0"
+            },
+            instruction_arr[instruction_arr.len() - 2]
+        );
         if i + 3 < command_arr.len() {
-            dest_idx = command_arr[i + 3] as usize;
+            if op == "03" {
+                dest_idx = command_arr[i + 1] as usize
+            } else {
+                dest_idx = command_arr[i + 3] as usize
+            }
         }
-        match command_arr[i] {
-            1 => {
+        println!("op: {}", instruction_arr.len());
+        match op.as_ref() {
+            "01" => {
                 command_arr[dest_idx] = command_arr[command_arr[i + 1] as usize]
-                    + command_arr[command_arr[i + 2] as usize]
+                    + command_arr[command_arr[i + 2] as usize];
+
+                i += 4; // maybe 3?
             }
-            2 => {
+            "02" => {
                 command_arr[dest_idx] = command_arr[command_arr[i + 1] as usize]
-                    * command_arr[command_arr[i + 2] as usize]
+                    * command_arr[command_arr[i + 2] as usize];
+
+                i += 4; // maybe 3?
             }
-            99 => {
+
+            "03" => {
+                command_arr[dest_idx] = input;
+                i += 2;
+            }
+
+            "04" => {}
+            "99" => {
                 break;
             }
-            _ => println!("Invalid opcode: {}", command_arr[i]),
+            _ => println!("Invalid opcode: {}", op),
         }
-        i += 4; // maybe 3?
     }
 
     println!("Result: {}", command_arr[0]);
